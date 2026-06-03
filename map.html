@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GridView - Netherlands Electricity Grid</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500&family=JetBrains+Mono:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo">
+            <div class="logo-dot"></div>
+            <span>GridView</span>
+            <button type="button" class="info-button" data-tooltip-key="top-logo" aria-label="GridView info">?</button>
+            <span class="logo-separator">|</span>
+            <span class="logo-subtitle">Netherlands</span>
+        </div>
+        <div class="top-nav">
+            <a href="#" id="map-nav" class="nav-link active">Map</a>
+            <a href="#" id="knowledge-nav" class="nav-link">Knowledge</a>
+        </div>
+        <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input type="text" class="search-input" placeholder="Search location or coordinates..." id="search-input">
+        </div>
+        <div class="layer-toggle-group">
+            <div class="layer-toggle-item">
+                <button class="layer-toggle-btn active" id="congestion-btn">Congestion</button>
+                <button type="button" class="info-button" data-tooltip-key="layer-congestion" aria-label="Congestion layer info">?</button>
+            </div>
+            <div class="layer-toggle-item">
+                <button class="layer-toggle-btn" id="radiation-btn">Radiation</button>
+                <button type="button" class="info-button" data-tooltip-key="layer-radiation" aria-label="Radiation layer info">?</button>
+            </div>
+        </div>
+        <div class="toggle-group">
+            <button class="toggle-btn active" id="standard-btn">Standard</button>
+            <button class="toggle-btn" id="satellite-btn">Satellite</button>
+        </div>
+    </div>
+    <div class="main">
+        <div class="explanation-box">
+            This interactive map visualizes electricity grid congestion and radiation in Amsterdam. Select a grid cell on the map then use the layer toggles and button to view detailed congestion or radiation metrics. Blue indicates below average radiation, red above average for the radiation mode. Use the rectangle tool to draw areas, click to cancel drawing.
+        </div>
+        <div class="map-sidebar-container content-page" id="page-map">
+            <div class="map-container" id="map"></div>
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2 class="sidebar-title">Grid Analysis</h2>
+                    <p class="sidebar-subtitle">Select a cell to view details</p>
+                </div>
+                <div class="sidebar-content" id="sidebar-content">
+                    <div class="city-search-container">
+                        <input type="text" class="city-search-input" placeholder="Search city..." id="city-search-input">
+                        <div class="suggestions" id="suggestions"></div>
+                    </div>
+                    <div class="date-container">
+                        <div class="date-label">Select Date</div>
+                        <input type="date" class="date-input" id="date-input" value="2024-06-15">
+                    </div>
+                    <div class="layers-container">
+                        <div class="layers-title">Layers</div>
+                        <div class="layer-item">
+                            <input type="checkbox" class="layer-checkbox" id="cloud-checkbox">
+                            <label for="cloud-checkbox" class="layer-label">Building density</label>
+                            <button type="button" class="info-button" data-tooltip-key="layer-building-density" aria-label="Building density info">?</button>
+                        </div>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">More yellow = higher built-up density (NDBI from Sentinel-2). Dense areas have more rooftops and higher solar feed-in potential.</p>
+                        <div class="layer-item">
+                            <input type="checkbox" class="layer-checkbox" id="terrain-checkbox">
+                            <label for="terrain-checkbox" class="layer-label">PV penetration</label>
+                            <button type="button" class="info-button" data-tooltip-key="layer-pv-clustering" aria-label="PV penetration info">?</button>
+                        </div>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">More red = higher share of connections with solar panels installed. Concentrated PV on one feeder stresses the grid more than spread-out installations.</p>
+                        <div class="layer-item">
+                            <input type="checkbox" class="layer-checkbox" id="greenness-checkbox">
+                            <label for="greenness-checkbox" class="layer-label">Land use type</label>
+                            <button type="button" class="info-button" data-tooltip-key="layer-land-use" aria-label="Land use type info">?</button>
+                        </div>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">Purple = Residential/Mixed · Red = Dense Urban · Yellow = Industrial/Commercial · Green = Agricultural. Each type has a different consumption-generation pattern.</p>
+                    </div>
+                    <div id="dynamic-content">
+                        <div class="empty-state" id="empty-state">
+                            <div class="empty-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                                    <circle cx="12" cy="10" r="3"/>
+                                </svg>
+                            </div>
+                            <p>Draw a rectangle on the map to see grid cell analysis.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content-page hidden" id="page-knowledge">
+            <div class="knowledge-content">
+                <h1>How <span style="color: #EDE771;">satellite imagery</span> reveals grid congestion</h1>
+                <div class="section-card">
+                    <h2>The problem</h2>
+                    <p>The Dutch electricity grid was designed for one-way power flow: from power plants to homes. Rooftop solar panels reversed this. When too many panels in one area push electricity back into the grid, cables and transformers get overloaded. This is called <span style="color: #EDE771;">grid congestion</span>. In Amsterdam, operator Liander has already declared congestion in several districts. New solar connections are being refused because the local grid cannot handle more feed-in.</p>
+                </div>
+                <div class="section-card">
+                    <h2>Why satellite imagery?</h2>
+                    <p>Grid operators know where congestion happens, but their data is private and hard to access. <span style="color: #EDE771;">Satellite imagery</span> is publicly available and covers entire cities at once. The idea behind this project is: can we look at a city from space and predict where the grid is likely congested, without needing access to internal grid data?</p>
+                </div>
+                <div class="section-card">
+                    <h2>What satellites see that matters for congestion</h2>
+                    <div class="cards-grid">
+                        <div class="mini-card"><div class="mini-icon">🏢</div><h3>Building density</h3><p><span style="color: #EDE771;">Sentinel-2</span> imagery reveals built-up surface density through the NDBI index. Denser built areas tend to have more connections and higher solar feed-in potential.</p></div>
+                        <div class="mini-card"><div class="mini-icon">🗂️</div><h3>Land use patterns</h3><p>Satellite indices combined with <span style="color: #EDE771;">CBS</span> neighbourhood statistics show residential, commercial, or industrial character. Each type has a different consumption-to-generation ratio and grid load.</p></div>
+                        <div class="mini-card"><div class="mini-icon">☀️</div><h3>Solar panel penetration</h3><p>Network operator data shows the share of connections with solar panels per cell. Risk is higher when many panels feed one substation instead of being spread across the city.</p></div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <h2>The analysis pipeline</h2>
+                    <div class="step-row">
+                        <div class="step-card"><strong>Step 1</strong><p>Grid congestion analysis with <span style="color: #EDE771;">Sentinel-2</span> and Dutch public datasets. <span style="color: #EDE771;">Random Forest</span> predicts High / Medium / Low per 1x1 km cell.</p></div>
+                        <div class="step-card"><strong>Step 2</strong><p>Solar radiation estimation from <span style="color: #EDE771;">Meteosat</span> SEVIRI at 15-min resolution. This captures cloud variation that 5-day Sentinel cannot.</p></div>
+                        <div class="step-card"><strong>Step 3</strong><p>Validation and comparison: high radiation plus high congestion means solar-grid mismatch. Low radiation and high congestion points to load from industry or other sources.</p></div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <h2>What the map shows</h2>
+                    <p>Congestion uses a categorical scale: red is high risk, orange medium, green low, grey means no prediction is available for that cell. The radiation layer is diverging: red means more sun than city average, blue means less. Per-cell overlays show <span style="color: #EDE771;">building density</span> (yellow, from NDBI), <span style="color: #EDE771;">PV penetration</span> (red, from network data), and <span style="color: #EDE771;">land use type</span> (purple / red / yellow / green by zone type) to explain why some cells have high congestion risk.</p>
+                </div>
+                <div class="section-card">
+                    <h2>Limitations</h2>
+                    <p>Congestion predictions use real data from a trained <span style="color: #EDE771;">Random Forest</span> model validated on Amsterdam's 1×1 km grid cells. Solar radiation figures are still estimated and not yet connected to live <span style="color: #EDE771;">Meteosat</span> data. The model predicts area-level risk — it does not identify individual rooftop panels or transformer loading directly.</p>
+                </div>
+                <p class="footer-note">This project was developed as part of an HBO-ICT internship at Fontys Innovation Lab, Eindhoven. The research paper and methodology are documented separately.</p>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script>
+  const GRID_GEOJSON_URL = 'grid_data.geojson';
+</script>
+    <script src="script.js"></script>
+</body>
+</html>
