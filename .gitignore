@@ -1,0 +1,8 @@
+Data/Seasons/
+Data/wijkenbuurten_2024.gpkg
+*.tif
+*.tiff
+*.pkl
+.ipynb_checkpoints/
+__pycache__/
+.claude/

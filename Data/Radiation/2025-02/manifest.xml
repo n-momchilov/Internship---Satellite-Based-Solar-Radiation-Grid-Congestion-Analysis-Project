@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<informationPackage xmlns="http://www.eumetsat.int/sip">
+    <dataSection>
+        <dataObject ID="SISmm2025020100000042310001I1MA.nc">
+            <fileType>Data</fileType>
+            <format>NetCDF</format>
+            <size>4037292</size>
+            <path>SISmm2025020100000042310001I1MA.nc</path>
+        </dataObject>
+    </dataSection>
+    <eopmetadataSection>
+        <path>EOPMetadata.xml</path>
+    </eopmetadataSection>
+</informationPackage>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amsterdam Grid Congestion Analysis</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500&family=JetBrains+Mono:ital,wght@0,400;0,500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main">
+        <div id="intro-box">
+            <h2 class="intro-heading">Amsterdam Grid Congestion Analysis</h2>
+            <p class="intro-text">
+                This map predicts grid congestion risk across Amsterdam at 1&times;1 km using Sentinel-2 satellite imagery and a Random Forest model.
+                Sunlight is nearly uniform across the city, so congestion comes from where power is consumed and where solar is installed.
+            </p>
+            <ol class="intro-steps">
+                <li><strong>Search and pick a location in the sidebar</strong> to center the map on the area you want.</li>
+                <li><strong>Select a date</strong> to choose which season&#39;s satellite imagery the map uses.</li>
+                <li><strong>Click Run Analysis</strong> to load and classify all ~2,200 grid cells into Low / Medium / High congestion risk.</li>
+                <li><strong>Toggle the layers</strong> (Building density, PV penetration, Land use) to see what drives congestion in each area.</li>
+                <li><strong>Click any cell on the map</strong> to see its full breakdown below, including the model prediction, the energy data, and the solar feed-in stress for the selected date.</li>
+                <li><strong>Switch to the Solar feed-in stress view</strong> to see how seasonal sunlight and local PV adoption combine into feed-in pressure.</li>
+            </ol>
+        </div>
+        <div id="summary-bar" style="display:none;">
+            <div class="summary-item">
+                <span class="summary-count high" id="summary-high">—</span>
+                <span class="summary-label">High Risk</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-count med" id="summary-med">—</span>
+                <span class="summary-label">Medium Risk</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-count low" id="summary-low">—</span>
+                <span class="summary-label">Low Risk</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-count" id="summary-total">—</span>
+                <span class="summary-label">Total Cells</span>
+            </div>
+        </div>
+        <div class="map-sidebar-container content-page" id="page-map">
+            <div id="loading-overlay" style="display:none;">
+                <div class="loading-content">
+                    <div class="spinner"></div>
+                    <div id="loading-message">Loading grid data...</div>
+                </div>
+            </div>
+            <div class="map-container" id="map"></div>
+            <div class="sidebar">
+                <div class="sidebar-header">
+                    <h2 class="sidebar-title">Controls</h2>
+                    <p class="sidebar-subtitle">Configure date, run analysis, toggle layers</p>
+                </div>
+                <div class="sidebar-content" id="sidebar-content">
+                    <div class="city-search-container">
+                        <input type="text" class="city-search-input" placeholder="Search city..." id="city-search-input">
+                        <div class="suggestions" id="suggestions"></div>
+                    </div>
+                    <div class="date-container">
+                        <div class="date-label">Select Date</div>
+                        <input type="date" class="date-input" id="date-input" value="2024-06-15">
+                        <p id="season-label" style="font-size:11px;color:#6B6B7B;margin:6px 0 0;">Showing summer 2024 satellite data</p>
+                        <p style="font-size:11px;color:#6B6B7B;margin:2px 0 0;">Date controls overlay season. Congestion predictions use all seasons combined.</p>
+                    </div>
+                    <div id="run-analysis-container">
+                        <button id="run-analysis-btn" onclick="runAnalysis()">Run Analysis</button>
+                    </div>
+                    <div class="map-switches-container">
+                        <div class="layers-title">Map view</div>
+                        <div class="layer-toggle-group" aria-label="Map layer mode">
+                            <div class="layer-toggle-item">
+                                <button class="layer-toggle-btn active" id="congestion-btn">Congestion</button>
+                                <button type="button" class="info-button" data-tooltip-key="layer-congestion" aria-label="Congestion layer info">?</button>
+                            </div>
+                            <div class="layer-toggle-item">
+                                <button class="layer-toggle-btn" id="radiation-btn">Solar feed-in stress</button>
+                                <button type="button" class="info-button" data-tooltip-key="layer-radiation" aria-label="Solar feed-in stress info">?</button>
+                            </div>
+                        </div>
+                        <div class="stress-estimated-toggle" id="stress-estimated-toggle" hidden>
+                            <input type="checkbox" class="layer-checkbox" id="show-estimated-stress-checkbox" checked>
+                            <label for="show-estimated-stress-checkbox" class="layer-label">Show estimated cells (city-median PV)</label>
+                        </div>
+                        <div class="layers-title">Basemap</div>
+                        <div class="toggle-group" aria-label="Basemap style">
+                            <button class="toggle-btn" id="standard-btn">Standard</button>
+                            <button class="toggle-btn active" id="satellite-btn">Satellite</button>
+                        </div>
+                    </div>
+                    <div class="layers-container">
+                        <div class="layers-title">Layers</div>
+                        <div class="layer-item">
+                            <input type="checkbox" class="layer-checkbox" id="cloud-checkbox">
+                            <label for="cloud-checkbox" class="layer-label">Building density</label>
+                            <button type="button" class="info-button" data-tooltip-key="layer-building-density" aria-label="Building density info">?</button>
+                        </div>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">More yellow = higher built-up density (NDBI from Sentinel-2). Dense areas have more rooftops and higher solar feed-in potential.</p>
+                        <div class="layer-item">
+                            <input type="checkbox" class="layer-checkbox" id="terrain-checkbox">
+                            <label for="terrain-checkbox" class="layer-label">PV penetration</label>
+                            <button type="button" class="info-button" data-tooltip-key="layer-pv-clustering" aria-label="PV penetration info">?</button>
+                        </div>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">More red = higher share of connections with solar panels installed. Concentrated PV on one feeder stresses the grid more than spread-out installations.</p>
+                        <div class="layer-item">
+                            <input type="checkbox" class="layer-checkbox" id="greenness-checkbox">
+                            <label for="greenness-checkbox" class="layer-label">Land use</label>
+                            <button type="button" class="info-button" data-tooltip-key="layer-land-use" aria-label="Land use type info">?</button>
+                        </div>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">Purple = Residential/Mixed · Red = Dense Urban · Yellow = Industrial/Commercial · Green = Agricultural. Each type has a different consumption-generation pattern.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="cell-summary-box" style="display:none;"></div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script>
+  const GRID_GEOJSON_URL = 'grid_data.geojson';
+  const RADIATION_GEOJSON_URL = 'radiation_layer.geojson';
+</script>
+    <script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,119 @@
+/* 05-responsive.css — hard overrides for tablet/phone */
+
+/* --- Globals --- */
+:root{
+  --container-pad: clamp(10px, 2.2vw, 24px);
+  --touch-target: 44px;
+  --topbar-h: 56px;
+}
+
+/* prevent horizontal scroll (except the nav bar which we exempt below) */
+html, body, .stApp, .block-container { overflow-x: hidden; }
+.site-bar, .site-bar-inner { overflow-x: visible !important; }
+
+/* container padding scales */
+.block-container{
+  padding-left: var(--container-pad) !important;
+  padding-right: var(--container-pad) !important;
+}
+
+/* wrap long text safely */
+[data-testid="stMarkdown"] { overflow-wrap: anywhere; }
+
+/* ---------- NAV: laptop/tablet vs phone behavior ---------- */
+
+/* Laptops/Tablets (<=1200px and >=821px): wrap to multiple rows, no horizontal scroll */
+@media (max-width: 1200px) and (min-width: 821px){
+  .site-bar { position: sticky; top: 0; z-index: var(--z-header); }
+  .site-bar-inner{ min-height: var(--topbar-h); padding-left: var(--container-pad); padding-right: var(--container-pad); }
+
+  .topnav{
+    flex-wrap: wrap !important;
+    overflow-x: visible !important;
+    gap: 10px !important;
+  }
+  .topnav .nav-link{
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    font-size: 16px !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* Phones (<=820px): single row that scrolls, scrollbar visible */
+@media (max-width: 820px){
+  .site-bar { position: sticky; top: 0; z-index: var(--z-header); }
+  .site-bar-inner{ min-height: var(--topbar-h); padding-left: var(--container-pad); padding-right: var(--container-pad); }
+
+  .topnav{
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px !important;
+
+    /* show scrollbar so users know there's more */
+    scrollbar-width: auto;
+  }
+  .topnav::-webkit-scrollbar{
+    height: 8px;
+  }
+  .topnav::-webkit-scrollbar-thumb{
+    background: rgba(255,255,255,.35);
+    border-radius: 999px;
+  }
+  .topnav .nav-link{
+    min-height: var(--touch-target) !important;
+    padding: 10px 12px !important;
+    font-size: 15px !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* --- Typography scale down on smaller screens --- */
+@media (max-width: 1200px){
+  body, .stApp{ font-size: clamp(16px, 1.4vw + 0.2rem, 18px) !important; }
+  .site-title{ font-size: clamp(18px, 2.0vw + 0.2rem, 22px) !important; }
+  .site-subtitle{ font-size: clamp(11px, 1.0vw + 0.2rem, 13px) !important; }
+  nav a{ font-size: clamp(14px, 1.2vw + 0.2rem, 16px) !important; }
+}
+
+/* --- HERO: avoid overflow; let height grow; make text/cta fit --- */
+@media (max-width: 1200px){
+  .hero{
+    height: auto !important;                 /* was 50vh */
+    padding: clamp(20px, 4vw, 40px) var(--container-pad) !important;
+  }
+  .hero .content{ max-width: 100% !important; }
+  .hero h2{ font-size: clamp(22px, 3.6vw, 32px) !important; } /* slightly tamer */
+  .hero p{ font-size: clamp(14px, 2.4vw, 18px) !important; }
+  .hero .cta-row{ margin-top: 14px !important; }
+  .hero .cta-btn{ min-height: var(--touch-target) !important; padding: 12px 18px !important; }
+}
+
+/* --- Panels / info cards --- */
+@media (max-width: 1200px){
+  .panel{ padding: clamp(12px, 2vw, 18px) !important; }
+  .info-card{ width: 100% !important; margin-left: 0 !important; margin-right: 0 !important; }
+  .info-row-two{ grid-template-columns: 1fr !important; } /* stack two-up rows on small screens */
+}
+
+/* --- Tables / dataframes --- */
+@media (max-width: 1200px){
+  .stDataFrame, .stTable { max-width: 100% !important; }
+  div[data-testid="stDataFrame"] > div { max-height: 65vh !important; }
+}
+
+/* --- Leaflet legend width on small screens --- */
+@media (max-width: 1200px){
+  .legend-box{ width: 100% !important; padding: 10px 12px !important; }
+  .legend-labels{ font-size: 12px !important; }
+}
+
+/* --- Footer compaction --- */
+@media (max-width: 1200px){
+  .site-footer{
+    padding: 12px var(--container-pad) 16px !important;
+    font-size: clamp(0.95rem, 1.6vw, 1.1rem) !important;
+  }
+  .brandmark{ height: clamp(18px, 2.4vw, 26px) !important; }
+}

@@ -1,0 +1,244 @@
+.leaflet-container{
+  border-radius:16px!important;border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 6px 16px rgba(0,0,0,.45);
+}
+.leaflet-control-container{z-index:500!important;}
+
+
+.legend-box {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(20, 35, 70, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e8f4ff;
+  font-size: 14px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  width: 65%;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.legend-title {
+  font-weight: 700;
+  font-size: 15px;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.legend-scale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.legend-gradient {
+  width: 100%;
+  height: 14px;
+  border-radius: 8px;
+  background: linear-gradient(to right,
+    #006837, /* dark green = low radiation */
+    #9acd32, /* yellow-green = moderate */
+    #ffcc00, /* yellow = high */
+    #ff6600, /* orange = very high */
+    #b30000  /* red = extreme */
+  );
+  margin-bottom: 6px;
+}
+
+.legend-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 12.5px;
+  color: #cfe3ff;
+}
+
+.legend-note {
+  text-align: center;
+  font-size: 12px;
+  color: #9fb7d7;
+  margin-top: 4px;
+}
+
+
+.pill-row div[data-testid="stButton"] > button{
+  background:rgba(20,35,70,.95)!important;color:#e8f2ff!important;
+  border:1px solid rgba(130,160,200,.45)!important;border-radius:12px!important;
+  padding:10px 14px!important;box-shadow:0 3px 10px rgba(0,0,0,.25)!important;
+  transition:transform .05s ease-in-out;
+}
+.pill-row div[data-testid="stButton"] > button:hover{transform:translateY(-1px);border-color:rgba(160,200,255,.6)!important;}
+
+.confirm-box{
+  background:rgba(8,33,68,.92);border:1px solid rgba(180,210,255,.18);
+  padding:12px 14px;border-radius:12px;margin:6px 0 10px 0;
+}
+.confirm-title{font-weight:800;color:#d8ebff;margin-bottom:6px;letter-spacing:.2px;}
+.confirm-text{color:#c6daf6;}.confirm-sub{opacity:.85;}
+.confirm-row div[data-testid="stButton"] > button{
+  background:rgba(18,44,88,.95)!important;color:#eaf3ff!important;
+  border:1px solid rgba(150,190,240,.45)!important;border-radius:10px!important;
+  min-height:46px!important;font-weight:700!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.28)!important;
+}
+.confirm-row div[data-testid="stButton"] > button:hover{border-color:rgba(190,220,255,.7)!important;}
+
+div[class*="st-key-suggest_"] button[data-testid="stBaseButton-secondary"],
+div[class*="st-key-confirm_yes"] button[data-testid="stBaseButton-secondary"],
+div[class*="st-key-confirm_no"] button[data-testid="stBaseButton-secondary"]{
+  background:rgba(20,35,70,.96)!important;color:#e8f2ff!important;
+  border:1px solid rgba(130,160,200,.5)!important;border-radius:12px!important;
+  min-height:46px!important;font-weight:700!important;padding:10px 14px!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.28)!important;
+}
+div[class*="st-key-suggest_"] button[data-testid="stBaseButton-secondary"]:hover,
+div[class*="st-key-confirm_yes"] button[data-testid="stBaseButton-secondary"]:hover,
+div[class*="st-key-confirm_no"]  button[data-testid="stBaseButton-secondary"]:hover,
+div[class*="st-key-suggest_"] button[data-testid="stBaseButton-secondary"]:focus,
+div[class*="st-key-confirm_yes"] button[data-testid="stBaseButton-secondary"]:focus,
+div[class*="st-key-confirm_no"]  button[data-testid="stBaseButton-secondary"]:focus{
+  border-color:rgba(180,210,255,.75)!important;transform:translateY(-1px);
+}
+div[class*="st-key-suggest_"] button [data-testid="stMarkdownContainer"],
+div[class*="st-key-confirm_yes"] button [data-testid="stMarkdownContainer"],
+div[class*="st-key-confirm_no"]  button [data-testid="stMarkdownContainer"]{color:#e8f2ff!important;}
+
+
+/* ==== Streamlit alert overrides (success, warning, error, info) ==== */
+
+div[data-testid="stNotification"] {
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.3px;
+}
+
+/* SUCCESS (green box — make brighter and more visible) */
+div[data-testid="stNotification"]:has([data-baseweb="tag"][aria-label="Success"]) {
+  background: linear-gradient(90deg, #16a34a, #22c55e) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+  box-shadow: 0 6px 16px rgba(0, 255, 120, 0.35) !important;
+}
+
+/* INFO (blueish) */
+div[data-testid="stNotification"]:has([data-baseweb="tag"][aria-label="Info"]) {
+  background: linear-gradient(90deg, #2563eb, #38bdf8) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* WARNING (orange) */
+div[data-testid="stNotification"]:has([data-baseweb="tag"][aria-label="Warning"]) {
+  background: linear-gradient(90deg, #f59e0b, #fb923c) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+}
+
+/* ERROR (red) */
+div[data-testid="stNotification"]:has([data-baseweb="tag"][aria-label="Error"]) {
+  background: linear-gradient(90deg, #dc2626, #ef4444) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.2) !important;
+}
+
+/* legend base already defined above; we add responsive toggles */
+.legend--desktop { display: block; }
+.legend--mobile  { display: none; }
+
+@media (max-width: 900px){
+  .legend--desktop { display: none; }
+  .legend--mobile  { display: block; }
+
+  /* mobile tweaks so it fits nicely edge-to-edge */
+  .legend-box {
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+    padding: 12px;
+  }
+  .legend-gradient { height: 10px; }
+  .legend-title { font-size: 16px; }
+  .legend-labels { font-size: 12px; }
+}
+
+/* ===== MAKE ALERT / EXPLANATION BOX READABLE ===== */
+/* This affects st.info / st.warning / st.error / st.success boxes */
+div[data-testid="stAlert"] {
+  background: rgba(8, 22, 50, 0.96) !important;
+  border-radius: 12px !important;
+  border: 1px solid rgba(200, 220, 255, 0.5) !important;
+  color: #f5f7ff !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Text inside the alert (your explanation) */
+div[data-testid="stAlert"] p,
+div[data-testid="stAlert"] span,
+div[data-testid="stAlert"] strong {
+  color: #f5f7ff !important;
+}
+
+/* Title “Why this prediction?” */
+.stMarkdown h4,
+.stMarkdown h3 {
+  color: #ffffff !important;
+}
+
+
+/* ===== MAKE SIDEBAR TITLES & LABELS BRIGHTER ===== */
+
+.panel .panel-title {
+  color: #ffffff !important;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
+/* Widget labels: “Day (UTC)”, etc. */
+.panel [data-testid="stWidgetLabel"] p {
+  color: #e5edff !important;
+  font-weight: 600;
+}
+
+/* Radio + checkbox option text (“GHI heatmap”, “ROI %…”, layers, …) */
+.panel div[data-testid="stRadio"] label,
+.panel div[data-testid="stCheckbox"] label {
+  color: #e6f0ff !important;
+}
+
+/* Sometimes the text is one level deeper – force those spans to be bright too */
+.panel div[data-testid="stRadio"] span,
+.panel div[data-testid="stCheckbox"] span {
+  color: #e6f0ff !important;
+}
+
+/* Slightly brighter caption text under ROI etc. */
+.panel .stCaption,
+.panel [data-testid="stCaptionContainer"] {
+  color: #c9dafc !important;
+}
+
+/* === Make "Map layer" / "Explainable layers" headings bright === */
+.panel-title {
+  color: #ffffff !important;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
+/* === Brighten radio + checkbox option text (GHI heatmap, ROI %, layers) === */
+div[data-testid="stRadio"] label p,
+div[data-testid="stRadio"] label span,
+div[data-testid="stCheckbox"] label p,
+div[data-testid="stCheckbox"] label span {
+  color: #e6f0ff !important;   /* light text on dark bg */
+  font-weight: 600;
+}
+
+/* optional: also affect plain label if Streamlit doesn’t wrap in <p> */
+div[data-testid="stRadio"] label,
+div[data-testid="stCheckbox"] label {
+  color: #e6f0ff !important;
+}
