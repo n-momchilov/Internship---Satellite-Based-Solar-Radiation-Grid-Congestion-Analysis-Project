@@ -1,0 +1,18 @@
+/* True sticky footer via flex; NO fixed positioning. */
+html,body,.stApp{height:100%;}
+[data-testid="stAppViewContainer"]{min-height:100vh;display:flex;flex-direction:column;}
+[data-testid="stAppViewContainer"]>.main{flex:1 0 auto;display:flex;flex-direction:column;}
+
+.block-container{
+  max-width:1440px;
+  padding:16px 16px 24px 16px!important;
+  display:flex; flex-direction:column;
+  flex:1 0 auto;
+}
+.block-container>*{flex-shrink:0;}
+
+/* push the wrapper that CONTAINS <footer> to bottom */
+.block-container div[data-testid="element-container"]:has(footer.site-footer),
+.block-container .stMarkdown:has(footer.site-footer){
+  margin-top:auto!important;
+}

@@ -1,0 +1,16 @@
+{
+  "model_name": "HGBR (no-leakage, tuned)",
+  "features": [
+    "Reliability",
+    "hour",
+    "month",
+    "is_weekend",
+    "sin_hour",
+    "cos_hour",
+    "sin_doy",
+    "cos_doy"
+  ],
+  "target": "GHI_Wm2",
+  "freq": "30min",
+  "time_zone": "UTC"
+}

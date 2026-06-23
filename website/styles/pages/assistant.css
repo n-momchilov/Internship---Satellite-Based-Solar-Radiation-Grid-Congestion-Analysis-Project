@@ -1,0 +1,229 @@
+/* ====== Global font ====== */
+html, body, [class*="css"] {
+  font-family: "Inter", sans-serif !important;
+  font-size: 17px !important;
+  line-height: 1.55 !important;
+  color: #e5e7eb !important;
+}
+
+/* ====== Page shell ====== */
+.sis-chat-page {
+  max-width: 960px;
+  margin: 2.8rem auto 4rem auto;
+  padding: 0 1.25rem;
+}
+
+/* ====== Hero header ====== */
+.sis-chat-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1.6rem 1.8rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(15,23,42,0.95), rgba(37,99,235,0.85));
+  box-shadow: 0 20px 48px rgba(15,23,42,0.65);
+  border: 1px solid rgba(148,163,184,0.45);
+}
+
+.sis-chat-hero-icon {
+  font-size: 3rem;
+}
+
+.sis-chat-title {
+  font-size: 2.4rem;
+  font-weight: 700;
+  margin: 0;
+  color: #ffffff;
+}
+
+.sis-chat-subtitle {
+  margin-top: 0.4rem;
+  font-size: 1.15rem;
+  opacity: 0.9;
+}
+
+/* ====== Chat card ====== */
+.sis-chat-card {
+  margin-top: 1.5rem;
+  background: rgba(15,23,42,0.96);
+  border-radius: 22px;
+  border: 1px solid rgba(148,163,184,0.55);
+  box-shadow: 0 22px 55px rgba(15,23,42,0.75);
+  padding: 1.3rem 0 1rem 0;
+}
+
+/* ====== Messages ====== */
+.sis-chat-row {
+  display: flex;
+  margin: 1rem 0;
+  padding: 0 1.2rem;
+}
+
+.sis-chat-row-user {
+  justify-content: flex-end;
+}
+
+.sis-chat-row-bot {
+  justify-content: flex-start;
+}
+
+.sis-bubble {
+  max-width: 82%;
+  padding: 0.9rem 1.2rem;
+  border-radius: 18px;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.sis-bubble-label {
+  font-size: 0.78rem;
+  opacity: 0.9;
+  margin-bottom: 0.35rem;
+}
+
+.sis-bubble-text {
+  white-space: pre-wrap;
+  font-size: 1.02rem;
+}
+
+/* User bubble */
+.sis-bubble-user {
+  background: linear-gradient(135deg, #3b82f6, #38bdf8);
+  color: #ffffff;
+  border-radius: 18px 18px 6px 18px;
+  box-shadow: 0 10px 22px rgba(56,189,248,0.35);
+}
+
+/* Bot bubble */
+.sis-bubble-bot {
+  background: rgba(30,41,59,0.98);
+  border: 1px solid rgba(148,163,184,0.6);
+  color: #f8fafc;
+  border-radius: 18px 18px 18px 6px;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.4);
+}
+
+/* ====== Suggestions ====== */
+/* ====== Suggestions (HTML pills, no Streamlit buttons) ====== */
+.sis-chat-suggestion-area {
+  padding: 0 1.2rem;
+  margin: 1.2rem 0 1.4rem 0;
+}
+
+.sis-chat-suggestion-area > span {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f9fafb;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.sis-suggestion-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.25rem;
+}
+
+/* Pills themselves */
+a.sis-suggestion-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 1.2rem;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #0f172a !important;
+  font-size: 0.92rem;
+  font-weight: 650;
+  text-decoration: none !important;
+  border: 1px solid rgba(148,163,184,0.8);
+  box-shadow: 0 8px 18px rgba(15,23,42,0.25);
+  white-space: nowrap;
+}
+
+a.sis-suggestion-pill:hover {
+  background: #e5edf7;
+}
+
+/* Mobile: stack pills full-width */
+@media (max-width: 600px) {
+  .sis-suggestion-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  a.sis-suggestion-pill {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}
+
+
+/* ====== Input area ====== */
+.sis-chat-input {
+  padding: 0.9rem 1.2rem 1.2rem 1.2rem;
+  border-top: 1px solid rgba(51,65,85,0.7);
+  background: rgba(15,23,42,0.98);
+}
+
+.sis-chat-input .stTextInput > div > div > input {
+  font-size: 1rem !important;
+  padding: 0.55rem 1rem !important;
+  border-radius: 999px !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.sis-chat-input .stButton > button {
+  font-size: 0.9rem !important;
+  padding: 0.55rem 1.4rem !important;
+  font-weight: 700 !important;
+  border-radius: 999px !important;
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(148,163,184,0.6) !important;
+  box-shadow: 0 10px 22px rgba(0,0,0,0.35) !important;
+}
+
+
+/* Remove unwanted padding/spacing from empty Streamlit markdown containers */
+div[data-testid="stMarkdownContainer"]:has(> .sis-chat-card:empty),
+div[data-testid="stMarkdownContainer"]:has(> .sis-chat-input:empty) {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+}
+
+/* Also remove Streamlit wrapper spacing around them */
+div[data-testid="stMarkdownContainer"]:has(> .sis-chat-card:empty) > div,
+div[data-testid="stMarkdownContainer"]:has(> .sis-chat-input:empty) > div {
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* =======================================================
+   Assistant page: force all Streamlit buttons to be clear,
+   dark text on white, except the floating chat launcher
+   ======================================================= */
+
+.stButton > button[data-testid="stBaseButton-secondary"]:not([key="sis_chat_button"]) {
+  background: #ffffff !important;
+  color: #0f172a !important;              /* dark navy text */
+  font-size: 0.95rem !important;
+  font-weight: 650 !important;
+  padding: 0.55rem 1.2rem !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(148,163,184,0.8) !important;
+  box-shadow: 0 8px 18px rgba(15,23,42,0.25) !important;
+}
+
+/* Make sure ALL inner text is visible */
+.stButton > button[data-testid="stBaseButton-secondary"]:not([key="sis_chat_button"]) * {
+  color: #0f172a !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}

@@ -1,0 +1,14 @@
+streamlit
+pandas
+numpy
+xarray
+netCDF4
+folium
+streamlit-folium
+geopy
+rapidfuzz
+Unidecode
+Pillow
+joblib
+scikit-learn==1.6.1
+

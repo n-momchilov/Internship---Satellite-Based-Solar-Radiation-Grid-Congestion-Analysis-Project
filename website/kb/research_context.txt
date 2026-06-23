@@ -1,0 +1,156 @@
+[SIS Project Overview]
+The Solar Imagery for Sustainability (SIS) project explores how satellite images can help understand solar radiation patterns to support sustainable energy insights. The project focuses on Eindhoven as an example region and uses satellite observations to study factors that influence how much sunlight reaches the Earth’s surface. The goal is not to create a full radiation model but to build understanding, awareness, and foundational knowledge.
+
+The priority of the project is clarity rather than complexity. The outcomes help students and researchers understand what satellite imagery can (and cannot) tell us about solar energy.
+
+
+[Why Solar Radiation Matters]
+Solar radiation describes how much sunlight reaches the ground. It influences:
+- Solar panel output
+- Suitability of locations for solar energy
+- Seasonal sunlight variation
+- Environmental and climate studies
+
+Understanding radiation patterns supports the transition toward renewable energy, especially in regions with changing cloud cover and atmospheric conditions.
+
+
+[Key Solar Radiation Concepts]
+Important terms:
+- Global Horizontal Irradiance (GHI): Total sunlight received by a horizontal surface.
+- Direct radiation: Sunlight that comes straight from the sun.
+- Diffuse radiation: Sunlight scattered by the atmosphere or clouds.
+- Albedo: How strongly a surface reflects sunlight.
+
+These concepts help interpret the relationship between satellite imagery and ground-level solar energy.
+
+
+[Satellite Imagery Basics]
+Satellites collect information about the Earth using sensors. There are two main types:
+
+1. Passive Optical Sensors (e.g., Sentinel-2, Landsat-8)
+- Detect natural sunlight reflected from surfaces.
+- Provide multispectral images: visible, near-infrared, and shortwave infrared.
+- Useful for observing land cover, vegetation, water, surface reflectance, and cloud conditions.
+- Limitations: cannot see through clouds; only work during daylight; affected by shadows and haze.
+
+2. Active Radar Sensors (SAR: Synthetic Aperture Radar; e.g., Sentinel-1)
+- Emit microwaves and measure how the signal bounces back.
+- Can see through clouds and work at night.
+- Useful for observing terrain structure, moisture, and surface roughness.
+- Limitations: SAR images have “speckle noise” and require careful interpretation.
+
+These two types complement each other:
+Optical shows color and reflectance; SAR shows structure and penetrates clouds.
+
+
+[What Satellite Imagery Can Tell Us About Solar Energy]
+Satellite images provide indirect information related to sunlight, such as:
+- Cloud cover
+- Atmospheric clarity
+- Surface reflectance (albedo)
+- Land type (water, vegetation, urban)
+
+While satellites do not directly measure solar radiation in most cases, these factors help analysts understand radiation variations.
+
+
+[Image Interpretation Knowledge]
+To use satellite imagery responsibly, it is important to understand basic processing concepts:
+
+- Radiometric Effects: Light scattering from clouds, haze, or dust can distort optical reflectance.
+- Geometric Distortion: Terrain and satellite viewing angles may create shifted or warped pixels.
+- Cloud Masking: Clouds must be identified because they block optical measurements.
+- Enhancement: Images may need sharpening or contrast adjustments to make features visible.
+- SAR Speckle: SAR images contain grainy patterns that require smoothing filters.
+
+These concepts ensure satellite observations are interpreted correctly.
+
+
+[Common Challenges]
+Satellite imagery has natural limitations:
+- Cloud cover blocks optical views.
+- Seasonal weather changes sunlight strongly.
+- Shadows and haze affect reflectance.
+- SAR requires expertise to interpret.
+- Different satellites have different resolutions and revisit times.
+- No single satellite provides perfect temporal, spatial, and spectral resolution simultaneously.
+
+These limitations help avoid over-interpreting the data.
+
+
+[SIS Radiation Workflow in Eindhoven]
+Eindhoven is used as a practical study area to explore how sunlight varies across an urban region. The project compares estimated sunlight patterns with information about land surfaces, clouds, and seasons.
+
+The goal is not precise prediction, but learning:
+How does sunlight typically distribute across a city, and what environmental factors seem to influence it?
+
+
+[Scenario Thinking vs Weather Forecasting]
+SIS does not try to forecast tomorrow’s weather.
+
+Instead, for dates outside the measured period, the system shows a “typical” pattern for that time of year. This approach is called scenario thinking. It focuses on realistic examples rather than exact predictions, helping users think about trends instead of certainties.
+
+
+[Explainable AI in Simple Terms]
+AI can sometimes feel like a “black box.” SIS takes the opposite approach: results should be understandable.
+
+The app uses simple visual layers to explain sunlight differences:
+- Clouds reduce incoming sunlight.
+- Greener areas often absorb more energy and stay slightly cooler.
+- Small terrain differences can cause small variations.
+
+Short explanation sentences help users connect what they see on the map to real-world factors in an intuitive way.
+
+
+[Basic Grid Congestion Awareness]
+Solar energy is growing quickly. However, electricity grids are not always designed to handle large amounts of solar power at the same time. When too much energy needs to flow through the same part of the grid, this is called grid congestion.
+
+SIS does not predict real congestion events. Instead, it helps illustrate how strong sunlight patterns might relate to areas where solar production could someday create pressure on the grid.
+
+
+[How to Read the SIS Maps]
+The maps do not say “good” or “bad.” They show:
+- where sunlight is stronger or weaker,
+- how the city compares to its own average,
+- and how natural features may influence local radiation.
+
+Single days should not be interpreted in isolation. Real-world planning requires long-term data and expert analysis.
+
+
+[Ethics and Responsible Interpretation]
+The project prioritizes transparency and honesty about uncertainty. Whenever results are simplified, this is intentional and should be acknowledged. SIS aims to support learning and reflection, not strong claims or operational decisions.
+
+
+[About the Sustainable Data & AI Applications Research Group]
+The SIS project is connected to the Sustainable Data & AI Applications research group at Fontys.
+
+The group focuses on:
+- Applied AI that benefits people and the planet.
+- Ethical, transparent, and responsible use of AI.
+- Explainability, fairness, and societal impact.
+- Sustainable and socially relevant data-driven innovation.
+- AI Engineering: building reliable AI systems with robust processes, quality, and maintainability.
+
+The group works with students, teachers, researchers, and external partners to explore how AI can contribute to societal challenges such as health, environment, biodiversity, and energy. It emphasizes collaboration, sustainability, and practical impact.
+
+
+[Research Philosophy]
+The project follows principles of:
+- Transparency: clear explanations and understandable insights.
+- Simplicity before complexity: focusing on essentials rather than advanced algorithms.
+- Responsible interpretation: acknowledging limitations and avoiding overclaiming results.
+- Educational value: making concepts accessible for new learners.
+
+
+[What the Chatbot Should and Should Not Do]
+The chatbot should:
+- Explain satellite imagery concepts in simple language.
+- Help users understand solar radiation basics.
+- Explain the high-level goals of the SIS project.
+- Discuss the research group’s mission and values.
+- Explain limitations clearly when information is not available.
+- Avoid technical implementation details unless specifically relevant.
+
+The chatbot must not:
+- Invent data or results.
+- Make claims not supported by the project context.
+- Present system outputs as official forecasts or operational tools.

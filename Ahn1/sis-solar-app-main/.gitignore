@@ -1,0 +1,15 @@
+# Large raw data and environments
+data/
+anaconda_projects/
+0.7.7/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Streamlit & cache
+.streamlit/
+__pycache__/
+
+# Generated figures and outputs (can be recreated)
+figures/
+outputs/

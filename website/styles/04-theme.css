@@ -1,0 +1,11 @@
+.stApp{
+  background:
+    radial-gradient(1200px 800px at 15% 10%, rgba(56,189,248,.18), transparent 70%),
+    radial-gradient(1000px 700px at 85% 20%, rgba(45,212,191,.12), transparent 70%),
+    linear-gradient(180deg, var(--c-bg-1) 0%, var(--c-bg-2) 45%, var(--c-bg-3) 70%, var(--c-bg-4) 100%);
+  background-attachment:fixed;
+}
+
+a.nav-link{cursor:pointer;text-decoration:none;}
+a.nav-link:visited{color:var(--c-text);}
+a.nav-link:active{color:var(--c-brand-2);}
