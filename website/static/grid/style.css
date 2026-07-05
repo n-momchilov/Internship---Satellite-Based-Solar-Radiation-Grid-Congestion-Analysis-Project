@@ -522,10 +522,31 @@ input {
     border: 1px solid rgba(255, 255, 255, 0.24);
 }
 
+.legend-gradient-ndbi {
+    background: linear-gradient(90deg, #0f172a 0%, #a16207 50%, #facc15 100%);
+}
+
+.legend-gradient-pv {
+    background: linear-gradient(90deg, rgba(248, 113, 113, 0.08), rgba(248, 113, 113, 0.58));
+}
+
 .legend-range {
     color: #a9c4e2;
     font-size: 12px;
     margin-bottom: 8px;
+}
+
+.legend-range-split {
+    display: flex;
+    justify-content: space-between;
+    width: 180px;
+}
+
+.legend-overlay-section {
+    max-width: 230px;
+    margin-top: 10px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(169, 196, 226, 0.22);
 }
 
 .legend-note {

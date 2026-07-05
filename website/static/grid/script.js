@@ -59,9 +59,9 @@ const tooltipTexts = {
     'sidebar-building-density': `Derived from the <span class="tooltip-highlight">NDBI</span> (Normalized Difference Built-up Index) computed from <span class="tooltip-highlight">Sentinel-2</span> satellite bands. Higher values mean more built-up surface area in the cell, which generally correlates with more rooftop solar potential.`,
     'sidebar-pv-clustering': `Share of grid connections in this cell that have solar panels installed, from network operator data. High penetration on the same feeder causes more congestion than the same number of panels spread across feeders.`,
     'sidebar-land-use': `Residential areas generate solar power during the day when consumption is low, causing reverse power flow. Industrial zones consume during the day, absorbing solar production locally. The mismatch between generation and consumption patterns drives congestion.`,
-    'layer-building-density': `Derived from the <span class="tooltip-highlight">NDBI</span> (Normalized Difference Built-up Index) from <span class="tooltip-highlight">Sentinel-2</span> imagery. More yellow = higher built-up density. Dense areas have more rooftops and higher solar feed-in potential.`,
+    'layer-building-density': `Derived from the <span class="tooltip-highlight">NDBI</span> (Normalized Difference Built-up Index) from <span class="tooltip-highlight">Sentinel-2</span> imagery. Darker cells = lower built-up density; brighter yellow cells = higher built-up density. Dense areas have more rooftops and higher solar feed-in potential.`,
     'layer-pv-clustering': `Share of grid connections with solar panels installed per cell, from network operator data. More red = higher PV penetration. Concentrated installations on one feeder stress the grid more than spread-out ones.`,
-    'layer-land-use': `Classified using <span class="tooltip-highlight">Sentinel-2</span> spectral indices (NDVI, NDBI) combined with <span class="tooltip-highlight">CBS</span> population density. Purple = Residential/Mixed · Red = Dense Urban · Yellow = Industrial/Commercial · Green = Agricultural.`
+    'layer-land-use': `Classified using <span class="tooltip-highlight">Sentinel-2</span> spectral indices (NDVI, NDBI) combined with <span class="tooltip-highlight">CBS</span> population density. Purple = Residential/Mixed · Red = Dense Urban · Yellow = Industrial/Commercial · dark slate = mixed open-water / low-built or no-data areas.`
 };
 
 const tooltipPopup = document.createElement('div');
@@ -174,7 +174,7 @@ function renderIntro() {
         </p>
         <ol class="intro-steps">
             <li><strong>Search and pick a location in the sidebar</strong> to center the map on the area you want.</li>
-            <li><strong>Select a date</strong> to choose which season&#39;s satellite imagery the map uses.</li>
+            <li><strong>Select a date</strong> to choose the seasonal satellite backdrop and solar feed-in stress. The congestion prediction stays annual.</li>
             <li><strong>Click Run Analysis</strong> to load and classify all ~2,200 grid cells into Low / Medium / High congestion risk.</li>
             <li><strong>Toggle the layers</strong> (Building density, PV penetration, Land use) to see what drives congestion in each area.</li>
             <li><strong>Click any cell on the map</strong> to see its full breakdown below, including the model prediction, the energy data, and the solar feed-in stress for the selected date.</li>
@@ -214,11 +214,14 @@ const greennessLayer = L.layerGroup();
 
 function refreshCloudLayer() {
     cloudLayer.clearLayers();
+    const ndbiScale = getNdbiScaleStats();
     gridCells.forEach(cell => {
         if (cell.ndbiPct === null) return;
-        const opacity = Math.max(0.02, Math.min(0.4, cell.ndbiPct / 100 * 0.4));
+        const normalized = normalizeNdbi(cell.ndbiPct, ndbiScale);
+        if (normalized === null) return;
+        const opacity = 0.52 + normalized * 0.06;
         L.rectangle([cell.sw, cell.ne], {
-            color: 'none', fillColor: '#FACC15', fillOpacity: opacity, weight: 0,
+            color: 'none', fillColor: getNdbiOverlayColor(normalized), fillOpacity: opacity, weight: 0,
             interactive: false
         }).addTo(cloudLayer);
     });
@@ -236,21 +239,26 @@ function refreshTerrainLayer() {
     });
 }
 
+function getLandUseDisplay(landUse) {
+    const lookup = {
+        'Residential / Mixed': { label: 'Residential / Mixed', color: '#7C3AED', opacity: 0.54 },
+        'Dense Urban': { label: 'Dense Urban', color: '#F87171', opacity: 0.54 },
+        'Industrial / Commercial': { label: 'Industrial / Commercial', color: '#FBBF24', opacity: 0.54 },
+        'Agricultural / Green': { label: 'Mixed / open-water', color: '#1F2937', opacity: 0.58 },
+        'Mixed': { label: 'Mixed / Other', color: '#475569', opacity: 0.54 },
+        'No data': { label: 'No land-use data', color: '#111827', opacity: 0.46 },
+        'Unknown': { label: 'No land-use data', color: '#111827', opacity: 0.46 }
+    };
+    return lookup[landUse] ?? { label: 'Mixed / Other', color: '#475569', opacity: 0.54 };
+}
+
 function refreshGreenessLayer() {
     greennessLayer.clearLayers();
-    const landUseColors = {
-        'Residential / Mixed': '#818CF8',
-        'Dense Urban': '#F87171',
-        'Industrial / Commercial': '#FBBF24',
-        'Agricultural / Green': '#34D399',
-        'Mixed': '#94A3B8',
-        'Unknown': 'transparent'
-    };
     gridCells.forEach(cell => {
-        const color = landUseColors[cell.landUse] || '#94A3B8';
-        if (color === 'transparent') return;
+        const landUseDisplay = getLandUseDisplay(cell.landUse);
+        if (!landUseDisplay) return;
         L.rectangle([cell.sw, cell.ne], {
-            color: 'none', fillColor: color, fillOpacity: 0.25, weight: 0,
+            color: 'none', fillColor: landUseDisplay.color, fillOpacity: landUseDisplay.opacity, weight: 0,
             interactive: false
         }).addTo(greennessLayer);
     });
@@ -329,6 +337,48 @@ function interpolateColor(startHex, endHex, t) {
     const end = clean(endHex).match(/.{2}/g).map(v => parseInt(v, 16));
     const rgb = start.map((value, index) => Math.round(value + (end[index] - value) * t));
     return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+}
+
+function percentile(sortedValues, p) {
+    if (!sortedValues.length) return null;
+    const position = (sortedValues.length - 1) * p;
+    const lower = Math.floor(position);
+    const upper = Math.min(lower + 1, sortedValues.length - 1);
+    const weight = position - lower;
+    return sortedValues[lower] * (1 - weight) + sortedValues[upper] * weight;
+}
+
+function getNdbiScaleStats() {
+    const values = gridCells
+        .map(cell => cell.ndbiPct)
+        .filter(value => value !== null && value !== undefined && !Number.isNaN(Number(value)))
+        .map(Number)
+        .sort((a, b) => a - b);
+
+    if (!values.length) return { min: null, max: null };
+
+    let min = percentile(values, 0.05);
+    let max = percentile(values, 0.95);
+
+    if (min === max) {
+        min = values[0];
+        max = values[values.length - 1];
+    }
+
+    return { min, max };
+}
+
+function normalizeNdbi(value, scale) {
+    if (value === null || value === undefined || Number.isNaN(Number(value))) return null;
+    if (!scale || scale.min === null || scale.max === null || scale.min === scale.max) return null;
+    return Math.max(0, Math.min(1, (Number(value) - scale.min) / (scale.max - scale.min)));
+}
+
+function getNdbiOverlayColor(normalized) {
+    if (normalized < 0.5) {
+        return interpolateColor('#0f172a', '#a16207', normalized / 0.5);
+    }
+    return interpolateColor('#a16207', '#facc15', (normalized - 0.5) / 0.5);
 }
 
 function parseCssRgb(color) {
@@ -493,9 +543,50 @@ function updateGridStyle() {
 
 let legendControl;
 
+function getOverlayLegendHtml() {
+    const sections = [];
+
+    if (layersVisible.clouds) {
+        sections.push(`
+            <div class="legend-overlay-section">
+                <div class="legend-title">Building density (NDBI)</div>
+                <div class="legend-gradient legend-gradient-ndbi"></div>
+                <div class="legend-range legend-range-split"><span>Low / sparse</span><span>High / built-up</span></div>
+            </div>
+        `);
+    }
+
+    if (layersVisible.terrain) {
+        sections.push(`
+            <div class="legend-overlay-section">
+                <div class="legend-title">PV penetration</div>
+                <div class="legend-gradient legend-gradient-pv"></div>
+                <div class="legend-range legend-range-split"><span>Low</span><span>High</span></div>
+            </div>
+        `);
+    }
+
+    if (layersVisible.greenness) {
+        sections.push(`
+            <div class="legend-overlay-section">
+                <div class="legend-title">Land use type</div>
+                <div class="legend-item"><div class="legend-color" style="background: #7C3AED;"></div><span>Residential / Mixed</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #F87171;"></div><span>Dense urban</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #FBBF24;"></div><span>Industrial / Commercial</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #1F2937;"></div><span>Mixed / open-water</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #475569;"></div><span>Mixed / Other</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #111827;"></div><span>No land-use data</span></div>
+            </div>
+        `);
+    }
+
+    return sections.join('');
+}
+
 function updateLegend() {
     if (!legendControl || !legendControl._div) return;
     const legendDiv = legendControl._div;
+    const overlayLegend = getOverlayLegendHtml();
 
     if (activeMode === 'congestion') {
         legendDiv.innerHTML = `
@@ -504,6 +595,7 @@ function updateLegend() {
             <div class="legend-item"><div class="legend-color" style="background: #FBBF24;"></div><span>Medium</span></div>
             <div class="legend-item"><div class="legend-color" style="background: #34D399;"></div><span>Low</span></div>
             <div class="legend-item"><div class="legend-color" style="background: #6B7280;"></div><span>No data</span></div>
+            ${overlayLegend}
         `;
     } else {
         const season = dateToSeason(selectedDate);
@@ -524,6 +616,7 @@ function updateLegend() {
             <div class="legend-item"><div class="legend-color legend-color-no-data"></div><span>No data</span></div>
             <div class="legend-note">Combines each cell's solar panel share with seasonal sunlight to show how much solar feed-in pressure it adds. Changes with the selected date. Relative estimate, not actual megawatts. ${estimateNote}</div>
             <div class="legend-validation">Sunlight itself is nearly uniform across Amsterdam (GHI spread under <b>${spreadLabel} W/m2</b> across all cells). The variation you see here comes from solar panel density, not sunlight, which is why congestion is driven by PV and consumption.</div>
+            ${overlayLegend}
         `;
     }
 }
@@ -910,18 +1003,21 @@ document.getElementById('cloud-checkbox').addEventListener('change', function() 
     if (!analysisComplete) { this.checked = false; return; }
     if (this.checked) { refreshCloudLayer(); cloudLayer.addTo(map); layersVisible.clouds = true; }
     else { map.removeLayer(cloudLayer); layersVisible.clouds = false; }
+    updateLegend();
 });
 
 document.getElementById('terrain-checkbox').addEventListener('change', function() {
     if (!analysisComplete) { this.checked = false; return; }
     if (this.checked) { refreshTerrainLayer(); terrainLayer.addTo(map); layersVisible.terrain = true; }
     else { map.removeLayer(terrainLayer); layersVisible.terrain = false; }
+    updateLegend();
 });
 
 document.getElementById('greenness-checkbox').addEventListener('change', function() {
     if (!analysisComplete) { this.checked = false; return; }
     if (this.checked) { refreshGreenessLayer(); greennessLayer.addTo(map); layersVisible.greenness = true; }
     else { map.removeLayer(greennessLayer); layersVisible.greenness = false; }
+    updateLegend();
 });
 
 function updateSidebar(cell) { /* no-op: cell details moved to below-map panel */ }
@@ -1104,8 +1200,8 @@ function updateCellSummary(cell) {
     } else {
         t1 += `<p class="csb-para csb-na">Model prediction: Not available for this cell.</p>`;
     }
-    const lu = (cell.landUse && cell.landUse !== 'Unknown') ? cell.landUse : null;
-    if (lu) t1 += `<p class="csb-para">Land use: <b>${lu}</b>.</p>`;
+    const landUseDisplay = getLandUseDisplay(cell.landUse);
+    if (landUseDisplay) t1 += `<p class="csb-para">Land use: <b>${landUseDisplay.label}</b>.</p>`;
     else    t1 += `<p class="csb-para csb-na">Land use: Not available for this cell.</p>`;
     if (cell.ndbiPct !== null) {
         t1 += `<p class="csb-para">Built-up density (<span class="intro-term">NDBI</span>${ndbiInfoButton()}): <b>${cell.ndbiPct.toFixed(1)}%</b> of surface.</p>`;

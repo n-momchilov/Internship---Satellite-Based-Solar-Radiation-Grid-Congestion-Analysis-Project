@@ -101,13 +101,13 @@ Its applied research not only strengthens industry collaboration but also helps 
   :root { --gap: 22px; }
   body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
   .team {
-    display:flex; justify-content:center; gap:var(--gap);
-    max-width:900px; margin:20px auto 0; padding:0 12px; flex-wrap:wrap;
+    display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--gap);
+    max-width:1080px; margin:20px auto 0; padding:0 12px;
   }
   .card {
     background:#ffffff; border-radius:16px; padding:28px;
     box-shadow:0 6px 16px rgba(0,0,0,0.15);
-    flex:1 1 360px; min-width:260px; text-align:center; transition:transform .2s ease;
+    min-width:0; text-align:center; transition:transform .2s ease;
   }
   .card:hover { transform: translateY(-4px); }
   .avatar {
@@ -115,6 +115,7 @@ Its applied research not only strengthens industry collaboration but also helps 
     font-size:34px; color:white; font-weight:700; margin:0 auto 14px;
   }
   .anh { background:#4CAF50; }
+  .nikola { background:#7C3AED; }
   .priyanka { background:#2196F3; }
   .card h3 { font-size:22px; margin:8px 0 10px; font-weight:800; }
   .card p { font-size:17px; margin:0 0 10px; line-height:1.55; color:#333; }
@@ -124,9 +125,13 @@ Its applied research not only strengthens industry collaboration but also helps 
   }
   .linkedin:hover { text-decoration:underline; }
 
+  @media (max-width: 820px){
+    .team { grid-template-columns:1fr; max-width:420px; }
+  }
+
   @media (max-width: 600px){
     .team { gap:16px; }
-    .card { flex:1 1 100%; padding:22px; }
+    .card { padding:22px; }
     .avatar { width:72px; height:72px; font-size:28px; margin-bottom:10px; }
     .card h3 { font-size:20px; }
     .card p  { font-size:15px; line-height:1.45; }
@@ -144,6 +149,14 @@ Its applied research not only strengthens industry collaboration but also helps 
       </a>
     </div>
     <div class="card">
+      <div class="avatar nikola">N</div>
+      <h3>Nikola</h3>
+      <p>Student of Software Engineering, currently specializing in AI at Fontys University of Applied Sciences</p>
+      <a class="linkedin" href="https://www.linkedin.com/in/nikola-momchilov/" target="_blank">
+        <img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="20" height="20" alt="LinkedIn"/> LinkedIn
+      </a>
+    </div>
+    <div class="card">
       <div class="avatar priyanka">PD</div>
       <h3>Priyanka Darbari</h3>
       <p>Company Mentor guiding the project at Fontys University of Applied Sciences.</p>
@@ -155,7 +168,7 @@ Its applied research not only strengthens industry collaboration but also helps 
 </body>
 </html>
 """
-    components.html(team_html, height=660, scrolling=False)
+    components.html(team_html, height=760, scrolling=False)
 
     # Safety spacer for mobile
     st.markdown("<div class='mobile-bottom-spacer'></div>", unsafe_allow_html=True)

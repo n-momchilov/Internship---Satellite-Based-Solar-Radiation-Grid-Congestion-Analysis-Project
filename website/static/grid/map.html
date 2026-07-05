@@ -21,7 +21,7 @@
             </p>
             <ol class="intro-steps">
                 <li><strong>Search and pick a location in the sidebar</strong> to center the map on the area you want.</li>
-                <li><strong>Select a date</strong> to choose which season&#39;s satellite imagery the map uses.</li>
+                <li><strong>Select a date</strong> to choose the seasonal satellite backdrop and solar feed-in stress. The congestion prediction stays annual.</li>
                 <li><strong>Click Run Analysis</strong> to load and classify all ~2,200 grid cells into Low / Medium / High congestion risk.</li>
                 <li><strong>Toggle the layers</strong> (Building density, PV penetration, Land use) to see what drives congestion in each area.</li>
                 <li><strong>Click any cell on the map</strong> to see its full breakdown below, including the model prediction, the energy data, and the solar feed-in stress for the selected date.</li>
@@ -68,7 +68,7 @@
                         <div class="date-label">Select Date</div>
                         <input type="date" class="date-input" id="date-input" value="2024-06-15">
                         <p id="season-label" style="font-size:11px;color:#6B6B7B;margin:6px 0 0;">Showing summer 2024 satellite data</p>
-                        <p style="font-size:11px;color:#6B6B7B;margin:2px 0 0;">Date controls overlay season. Congestion predictions use all seasons combined.</p>
+                        <p style="font-size:11px;color:#6B6B7B;margin:2px 0 0;">Congestion risk is an annual prediction (all seasons combined). The date changes the satellite backdrop and the solar feed-in stress view, not this prediction.</p>
                     </div>
                     <div id="run-analysis-container">
                         <button id="run-analysis-btn" onclick="runAnalysis()">Run Analysis</button>
@@ -102,7 +102,7 @@
                             <label for="cloud-checkbox" class="layer-label">Building density</label>
                             <button type="button" class="info-button" data-tooltip-key="layer-building-density" aria-label="Building density info">?</button>
                         </div>
-                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">More yellow = higher built-up density (NDBI from Sentinel-2). Dense areas have more rooftops and higher solar feed-in potential.</p>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">Darker = lower built-up density; brighter yellow = higher built-up density (NDBI from Sentinel-2). Dense areas have more rooftops and higher solar feed-in potential.</p>
                         <div class="layer-item">
                             <input type="checkbox" class="layer-checkbox" id="terrain-checkbox">
                             <label for="terrain-checkbox" class="layer-label">PV penetration</label>
@@ -114,7 +114,7 @@
                             <label for="greenness-checkbox" class="layer-label">Land use</label>
                             <button type="button" class="info-button" data-tooltip-key="layer-land-use" aria-label="Land use type info">?</button>
                         </div>
-                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">Purple = Residential/Mixed · Red = Dense Urban · Yellow = Industrial/Commercial · Green = Agricultural. Each type has a different consumption-generation pattern.</p>
+                        <p style="font-size: 12px; color: #6B6B7B; margin: -12px 0 12px 0; padding-left: 24px;">Purple = Residential/Mixed · Red = Dense Urban · Yellow = Industrial/Commercial · Dark slate = mixed open-water / low-built or no-data areas.</p>
                     </div>
                 </div>
             </div>
