@@ -514,6 +514,23 @@ input {
     border-color: rgba(148, 163, 184, 0.72);
 }
 
+.legend-scale-group {
+    margin-top: 9px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(169, 196, 226, 0.16);
+}
+
+.legend-subtitle {
+    color: #a9c4e2;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.legend-muted {
+    opacity: 0.48;
+}
+
 .legend-gradient {
     height: 12px;
     width: 180px;

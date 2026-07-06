@@ -41,7 +41,7 @@ let selectedCell = null;
 let activeMarker = null;
 let CITY_MEDIAN_PV = null;
 let ignoreMapClickUntil = 0;
-let showEstimatedStressCells = true;
+let showEstimatedStressCells = false;
 
 const tooltipTexts = {
     'layer-congestion': 'The congestion layer shows predicted grid overload risk per 1×1 km cell. <span class="tooltip-highlight">Red</span> = high risk, <span class="tooltip-highlight">orange</span> = medium, <span class="tooltip-highlight">green</span> = low, <span class="tooltip-highlight">grey</span> = no prediction available. Predictions are based on satellite-derived features like NDBI, PV penetration, and land use.',
@@ -431,21 +431,61 @@ function getSolarFeedInStress(cell) {
     return { norm: solarIndexNorm, level, pvPct, hasOwnPV, hasEnergyContext, usesFallback: !hasOwnPV, ghi, season };
 }
 
-function getStressColor(norm) {
+function formatSeasonName(season) {
+    return season ? season.charAt(0).toUpperCase() + season.slice(1) : 'Season';
+}
+
+function getSunlightStrength(season) {
+    return {
+        winter: 'weak',
+        spring: 'moderate',
+        summer: 'strong',
+        autumn: 'moderate'
+    }[season] || 'seasonal';
+}
+
+function getStressLevelColor(level) {
+    return level === 'Low' ? '#34D399' : level === 'Moderate' ? '#FBBF24' : '#F87171';
+}
+
+function renderSolarStressExplanation(stressInfo) {
+    const seasonName = formatSeasonName(stressInfo.season);
+    const sunlightStrength = getSunlightStrength(stressInfo.season);
+    const pvLabel = stressInfo.pvPct.toFixed(1);
+    const cityMedianLabel = CITY_MEDIAN_PV !== null ? CITY_MEDIAN_PV.toFixed(1) : pvLabel;
+
+    let content = `<p class="csb-para"><b>${seasonName}</b>: ${sunlightStrength} sunlight (<b>${stressInfo.ghi} W/m2</b> <span class="intro-term">GHI</span>${ghiInfoButton()}).</p>`;
+    if (stressInfo.hasOwnPV) {
+        const stressColor = getStressLevelColor(stressInfo.level);
+        content += `<p class="csb-para">This cell's own solar data (<b>${pvLabel}%</b>).</p>`;
+        content += `<p class="csb-para">Solar feed-in stress: <b style="color:${stressColor}">${stressInfo.level}</b>.</p>`;
+        content += `<p class="csb-para">This shows how much pressure this cell's measured solar panels put on the grid in <b>${seasonName}</b>. It is high in summer when the sun is strong, and nearly zero in winter when it is weak. Change the date to see it move.</p>`;
+    } else {
+        content += `<p class="csb-para"><b>No local solar data for this cell.</b> Estimated using the city-median solar share (<b>${cityMedianLabel}%</b>) only for background context. ${cityMedianInfoButton()}</p>`;
+        content += `<p class="csb-para"><b>Not counted as a measured PV stress cell.</b> This does not prove panels are here. Use the warm measured cells for actual local PV evidence.</p>`;
+    }
+    return content;
+}
+
+function getMeasuredStressColor(norm) {
     if (norm === null || norm === undefined) return '#94A3B8';
     if (norm < 0.04) {
-        return interpolateColor('#dbeafe', '#38bdf8', Math.max(0, Math.min(1, norm / 0.04)));
+        return interpolateColor('#ffedd5', '#fb923c', Math.max(0, Math.min(1, norm / 0.04)));
     }
     if (norm < 0.12) {
-        return interpolateColor('#fef3c7', '#f59e0b', Math.max(0, Math.min(1, (norm - 0.04) / 0.08)));
+        return interpolateColor('#fdba74', '#ea580c', Math.max(0, Math.min(1, (norm - 0.04) / 0.08)));
     }
-    return interpolateColor('#fca5a5', '#dc2626', Math.max(0, Math.min(1, (norm - 0.12) / 0.28)));
+    return interpolateColor('#f87171', '#b91c1c', Math.max(0, Math.min(1, (norm - 0.12) / 0.28)));
+}
+
+function getStressColor(norm) {
+    return getMeasuredStressColor(norm);
 }
 
 function getStressDisplayColor(stressInfo) {
-    const baseColor = getStressColor(stressInfo.norm);
+    const baseColor = getMeasuredStressColor(stressInfo.norm);
     if (stressInfo.norm === null || stressInfo.hasOwnPV) return baseColor;
-    return mixColor(baseColor, '#94a3b8', 0.62);
+    return '#94A3B8';
 }
 
 function formatStressIndex(norm) {
@@ -458,8 +498,11 @@ function getStressTooltip(cell) {
         return `${cell.id} - Solar feed-in stress: No data`;
     }
     const seasonName = stress.season.charAt(0).toUpperCase() + stress.season.slice(1);
-    const pvSource = stress.hasOwnPV ? 'local PV' : 'city-median PV';
-    return `${cell.id} - ${seasonName} solar feed-in stress: ${stress.level} (stress index ${formatStressIndex(stress.norm)}/100, ${stress.pvPct.toFixed(1)}% ${pvSource})`;
+    if (!stress.hasOwnPV) {
+        return `${cell.id} - ${seasonName} estimated context only: no local PV data`;
+    }
+    const pvSource = 'measured local PV';
+    return `${cell.id} - ${seasonName} solar feed-in stress: ${stress.level} (${stress.pvPct.toFixed(1)}% ${pvSource})`;
 }
 
 function updateGridStyle() {
@@ -488,7 +531,7 @@ function updateGridStyle() {
             } else {
                 color = getStressDisplayColor(stressInfo);
                 // Only cells with energy context but missing local PV use the city median;
-                // muting them keeps estimates from overpowering measured cells.
+                // they stay muted context so only measured local PV cells stand out.
                 opacity = stressInfo.usesFallback ? 0.24 : 0.66;
                 strokeColor = stressInfo.usesFallback ? '#94A3B8' : color;
                 dashArray = stressInfo.usesFallback ? '4 3' : null;
@@ -601,20 +644,23 @@ function updateLegend() {
         const season = dateToSeason(selectedDate);
         const seasonName = season.charAt(0).toUpperCase() + season.slice(1);
         const spreadLabel = formatGhiSpread(GHI_CELL_SPREADS[season]);
-        const estimatedLegend = showEstimatedStressCells
-            ? '<div class="legend-item"><div class="legend-color legend-color-estimated"></div><span>Estimated (city-median PV)</span></div>'
-            : '';
         const estimateNote = showEstimatedStressCells
-            ? 'Cells without local PV data use the city-median share only when consumption data exists.'
-            : 'Estimated cells are hidden by default; measured cells use local PV data.';
+            ? 'Estimated cells use the city-median share only when consumption data exists; they are context only and do not count as real PV data for that cell.'
+            : 'Estimated cells are currently hidden; turn on the checkbox to show muted context cells.';
+        const estimatedLegend = showEstimatedStressCells
+            ? '<div class="legend-item"><div class="legend-color legend-color-estimated"></div><span>Estimated context (city-median PV, not local PV)</span></div>'
+            : '<div class="legend-item legend-muted"><div class="legend-color legend-color-estimated"></div><span>Estimated context hidden</span></div>';
         legendDiv.innerHTML = `
             <div class="legend-title">${seasonName} solar feed-in stress</div>
-            <div class="legend-item"><div class="legend-color" style="background: #38bdf8;"></div><span>Low &lt; 0.04</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: #f59e0b;"></div><span>Moderate 0.04-0.12</span></div>
-            <div class="legend-item"><div class="legend-color" style="background: #dc2626;"></div><span>High >= 0.12</span></div>
+            <div class="legend-scale-group">
+                <div class="legend-subtitle">Measured (real PV data)</div>
+                <div class="legend-item"><div class="legend-color" style="background: #ffedd5;"></div><span>Low &lt; 0.04</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #ea580c;"></div><span>Moderate 0.04-0.12</span></div>
+                <div class="legend-item"><div class="legend-color" style="background: #b91c1c;"></div><span>High >= 0.12</span></div>
+            </div>
             ${estimatedLegend}
             <div class="legend-item"><div class="legend-color legend-color-no-data"></div><span>No data</span></div>
-            <div class="legend-note">Combines each cell's solar panel share with seasonal sunlight to show how much solar feed-in pressure it adds. Changes with the selected date. Relative estimate, not actual megawatts. ${estimateNote}</div>
+            <div class="legend-note">Measured cells combine that cell's real PV share with seasonal sunlight. Muted estimated cells use city-median PV only as background context. Changes with the selected date. Relative estimate, not actual megawatts. ${estimateNote}</div>
             <div class="legend-validation">Sunlight itself is nearly uniform across Amsterdam (GHI spread under <b>${spreadLabel} W/m2</b> across all cells). The variation you see here comes from solar panel density, not sunlight, which is why congestion is driven by PV and consumption.</div>
             ${overlayLegend}
         `;
@@ -1102,6 +1148,18 @@ function deriveDriverType(cell) {
     return 'low';
 }
 
+function hasSolarEvidence(cell) {
+    const ratioFromKwh = cell.feedinKwh !== null && cell.consumptionKwh !== null && cell.consumptionKwh > 0
+        ? cell.feedinKwh / cell.consumptionKwh
+        : null;
+    const feedinRatio = cell.feedinRatio !== null ? cell.feedinRatio : ratioFromKwh;
+    const pvPct = clipPct(cell.pvPct);
+
+    return (feedinRatio !== null && feedinRatio > 0) ||
+        (cell.feedinKwh !== null && cell.feedinKwh > 0) ||
+        (pvPct !== null && pvPct > 0);
+}
+
 function getDriverVerdict(cell) {
     const driverType = normalizedDriverType(cell.congestionDriver) || deriveDriverType(cell);
 
@@ -1115,6 +1173,9 @@ function getDriverVerdict(cell) {
         return 'Driver verdict: <b>Mixed</b>. This cell has both high demand and high solar feed-in, so it faces mixed congestion pressure.';
     }
     if (driverType === 'low') {
+        if (hasSolarEvidence(cell)) {
+            return 'Driver verdict: <b>Solar present, below driver threshold</b>. This cell has PV or feed-in data, but it is not high enough to count as solar-driven congestion; the main driver is not clear from the energy data.';
+        }
         return 'Driver verdict: <b>No clear driver</b>. The energy data does not show a strong demand or solar feed-in pressure for this cell.';
     }
     return null;
@@ -1134,7 +1195,6 @@ function cellSummaryHeaderHtml(cell, cellId) {
 function renderStressCellSummary(box, cell, cellId) {
     const seasonLabel = getSeasonLabel(selectedDate);
     const stressInfo = getSolarFeedInStress(cell);
-    const hasOwnPV = stressInfo.hasOwnPV;
     const pvSource = stressInfo.pvPct;
     let content = '';
 
@@ -1143,21 +1203,7 @@ function renderStressCellSummary(box, cell, cellId) {
             ? `<p class="csb-para csb-na"><b>No data for this cell.</b> Solar feed-in stress cannot be estimated because local PV data is missing and no fallback value is available.</p>`
             : `<p class="csb-para csb-na"><b>No data for this cell.</b> Solar feed-in stress is not estimated because this cell has no local PV data and no consumption/energy data.</p>`;
     } else {
-        const stressIndex = formatStressIndex(stressInfo.norm);
-        const stress = stressInfo.level;
-        const stressColor = stress === 'Low' ? '#34D399' : stress === 'Moderate' ? '#FBBF24' : '#F87171';
-
-        if (hasOwnPV) {
-            content += `<div class="csb-source-note"><b>PV source: cell's own PV data.</b></div>`;
-        } else {
-            const cityMedianLabel = CITY_MEDIAN_PV !== null ? CITY_MEDIAN_PV.toFixed(1) : pvSource.toFixed(1);
-            content += `<div class="csb-avg-notice"><b>Estimated using the city-median PV share (${cityMedianLabel}%).</b> ${cityMedianInfoButton()} This cell has no local PV data.</div>`;
-        }
-        content += `<p class="csb-para">Seasonal sunlight used: <b>${seasonLabel}</b>, <b>${stressInfo.ghi} W/m2</b> GHI.</p>`;
-        content += `<p class="csb-para">PV share used: <b>${pvSource.toFixed(1)}%</b> from ${hasOwnPV ? "the cell's own PV data" : "the city-median estimate"}.</p>`;
-        content += `<p class="csb-para">Stress index: <b style="color:${stressColor}">${stressIndex} / 100</b> &mdash; <b style="color:${stressColor}">${stress}</b> solar stress.</p>`;
-        content += `<p class="csb-para">This is a compressed 0-100 scale. Real solar feed-in is a small share of the theoretical maximum, so even modest index values count as high stress. Higher means more solar pressure on the grid.</p>`;
-        content += `<p class="csb-para">This is how much solar feed-in pressure the cell adds in ${seasonLabel}; it rises in summer and nearly disappears in winter, change the date to see it move.</p>`;
+        content += renderSolarStressExplanation(stressInfo);
     }
 
     box.innerHTML = `
@@ -1256,12 +1302,10 @@ function updateCellSummary(cell) {
     }
 
     // ── Tier 3 ───────────────────────────────────────────────────────────────
-    const season = dateToSeason(selectedDate);
     const seasonLabel = getSeasonLabel(selectedDate);
     let t3 = '';
 
     const stressInfo = getSolarFeedInStress(cell);
-    const hasOwnPV = stressInfo.hasOwnPV;
     const pvSource = stressInfo.pvPct;
 
     if (pvSource === null) {
@@ -1269,22 +1313,7 @@ function updateCellSummary(cell) {
             ? `<p class="csb-para csb-na"><b>No data for this cell.</b> Solar feed-in stress cannot be estimated because local PV data is missing and no fallback value is available.</p>`
             : `<p class="csb-para csb-na"><b>No data for this cell.</b> Solar feed-in stress is not estimated because this cell has no local PV data and no consumption/energy data.</p>`;
     } else {
-        const stressIndex = formatStressIndex(stressInfo.norm);
-        const stress = stressInfo.level;
-        const stressColor = stress === 'Low' ? '#34D399' : stress === 'Moderate' ? '#FBBF24' : '#F87171';
-
-        if (!hasOwnPV) {
-            const cityMedianLabel = CITY_MEDIAN_PV !== null ? CITY_MEDIAN_PV.toFixed(1) : pvSource.toFixed(1);
-            t3 += `<div class="csb-avg-notice"><b>Estimated using the city-median PV share (${cityMedianLabel}%).</b> ${cityMedianInfoButton()} This cell has no local PV data. Many cells share this same estimate, which is expected.</div>`;
-        } else {
-            t3 += `<div class="csb-source-note"><b>Using cell's own PV data.</b></div>`;
-        }
-        t3 += `<p class="csb-para">Using <b>${seasonLabel}</b> sunlight (<b>${stressInfo.ghi} W/m²</b> city average) and <b>${pvSource.toFixed(1)}%</b> PV penetration from ${hasOwnPV ? "the cell's own PV data" : "the city-median estimate"}.</p>`;
-        t3 += `<p class="csb-para">These inputs show whether this cell has enough panel density and seasonal sunlight to push power back onto local cables.</p>`;
-        t3 += `<p class="csb-para">Stress index: <b style="color:${stressColor}">${stressIndex} / 100</b> &mdash; <b style="color:${stressColor}">${stress}</b> solar stress.</p>`;
-        t3 += `<p class="csb-para">This is a compressed 0-100 scale. Real solar feed-in is a small share of the theoretical maximum, so even modest index values count as high stress. Higher means more solar pressure on the grid.</p>`;
-        t3 += `<p class="csb-para">This is how much solar feed-in pressure the cell adds in ${seasonLabel}, combining its panel share with seasonal sunlight. It rises in summer and nearly disappears in winter; change the date to see it move.</p>`;
-        t3 += `<p class="csb-disclaimer">Relative estimate. Scales PV share by city seasonal sunlight to indicate solar feed-in pressure. Uses city seasonal average GHI. Not actual megawatts.</p>`;
+        t3 += renderSolarStressExplanation(stressInfo);
     }
 
     box.innerHTML = `
